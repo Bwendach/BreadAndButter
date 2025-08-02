@@ -89,36 +89,113 @@ class _MenuListScreenState extends State<MenuListScreen> {
             }
 
             return AlertDialog(
-              title: const Text('Edit Menu Item'),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(20),
+              ),
+              title: Text(
+                'Edit Menu Item',
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  color: Theme.of(context).colorScheme.primary,
+                ),
+              ),
               content: SingleChildScrollView(
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     TextField(
                       controller: nameController,
-                      decoration: const InputDecoration(labelText: 'Menu Name'),
-                    ),
-                    TextField(
-                      controller: descriptionController,
-                      decoration: const InputDecoration(
-                        labelText: 'Description',
+                      decoration: InputDecoration(
+                        labelText: 'Menu Name',
+                        prefixIcon: Icon(
+                          Icons.restaurant,
+                          color: Theme.of(context).colorScheme.primary,
+                        ),
                       ),
                     ),
+                    const SizedBox(height: 16),
                     TextField(
-                      controller: priceController,
-                      decoration: const InputDecoration(labelText: 'Price'),
+                      controller: descriptionController,
+                      decoration: InputDecoration(
+                        labelText: 'Description',
+                        prefixIcon: Icon(
+                          Icons.description,
+                          color: Theme.of(context).colorScheme.primary,
+                        ),
+                      ),
+                      maxLines: 3,
                     ),
                     const SizedBox(height: 16),
-                    selectedImage != null
-                        ? Image.file(selectedImage!, height: 100)
-                        : Image.network(
-                            '$URLPATH/assets/${menu.menuImageUrl}',
-                            height: 100,
-                          ),
-                    const SizedBox(height: 8),
-                    ElevatedButton(
+                    TextField(
+                      controller: priceController,
+                      keyboardType: const TextInputType.numberWithOptions(
+                        decimal: true,
+                      ),
+                      decoration: InputDecoration(
+                        labelText: 'Price',
+                        prefixIcon: Icon(
+                          Icons.attach_money,
+                          color: Theme.of(context).colorScheme.primary,
+                        ),
+                        prefixText: '\$',
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+                    Container(
+                      height: 150,
+                      width: double.infinity,
+                      decoration: BoxDecoration(
+                        color: Theme.of(context).colorScheme.surface,
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(
+                          color: Theme.of(context).dividerColor,
+                          width: 1,
+                        ),
+                      ),
+                      child: selectedImage != null
+                          ? ClipRRect(
+                              borderRadius: BorderRadius.circular(16),
+                              child: Image.file(
+                                selectedImage!,
+                                fit: BoxFit.cover,
+                              ),
+                            )
+                          : ClipRRect(
+                              borderRadius: BorderRadius.circular(16),
+                              child: Image.network(
+                                '$URLPATH/assets/${menu.menuImageUrl}',
+                                fit: BoxFit.cover,
+                                errorBuilder: (context, error, stackTrace) =>
+                                    const Center(
+                                      child: Icon(Icons.broken_image, size: 40),
+                                    ),
+                              ),
+                            ),
+                    ),
+                    const SizedBox(height: 16),
+                    ElevatedButton.icon(
                       onPressed: _pickImage,
-                      child: const Text('Change Image'),
+                      icon: Icon(
+                        selectedImage == null ? Icons.edit : Icons.image,
+                        color: Theme.of(context).colorScheme.onPrimary,
+                      ),
+                      label: Text(
+                        'Change Image',
+                        style: TextStyle(
+                          color: Theme.of(context).colorScheme.onPrimary,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Theme.of(context).colorScheme.primary,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        padding: const EdgeInsets.symmetric(
+                          vertical: 12,
+                          horizontal: 24,
+                        ),
+                      ),
                     ),
                   ],
                 ),
@@ -126,11 +203,27 @@ class _MenuListScreenState extends State<MenuListScreen> {
               actions: [
                 TextButton(
                   onPressed: () => Navigator.of(context).pop(),
-                  child: const Text('Cancel'),
+                  child: Text(
+                    'Cancel',
+                    style: TextStyle(
+                      color: Theme.of(context).colorScheme.onSurface,
+                    ),
+                  ),
                 ),
                 ElevatedButton(
                   onPressed: _updateItem,
-                  child: const Text('Save'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Theme.of(context).colorScheme.secondary,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  child: Text(
+                    'Save',
+                    style: TextStyle(
+                      color: Theme.of(context).colorScheme.onSecondary,
+                    ),
+                  ),
                 ),
               ],
             );
@@ -144,146 +237,127 @@ class _MenuListScreenState extends State<MenuListScreen> {
   Widget build(BuildContext context) {
     final bool isAdmin = widget.role == 'admin';
 
-    return Column(
-      children: [
-        Container(
-          padding: const EdgeInsets.all(10),
-          child: const Text(
-            "Our Menu",
-            style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+    return FutureBuilder<List<MenuModel>>(
+      future: menuList,
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(child: CircularProgressIndicator());
+        }
+
+        if (snapshot.hasError) {
+          return Center(child: Text('Error: ${snapshot.error}'));
+        }
+
+        if (!snapshot.hasData || snapshot.data!.isEmpty) {
+          return const Center(child: Text('No menu items available'));
+        }
+
+        final data = snapshot.data!;
+
+        return GridView.builder(
+          padding: const EdgeInsets.all(16.0),
+          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: 2,
+            crossAxisSpacing: 16.0,
+            mainAxisSpacing: 16.0,
+            childAspectRatio: 0.75,
           ),
-        ),
-        Expanded(
-          child: FutureBuilder<List<MenuModel>>(
-            future: menuList,
-            builder: (context, snapshot) {
-              if (snapshot.connectionState == ConnectionState.waiting) {
-                return const Center(child: CircularProgressIndicator());
-              }
+          itemCount: data.length,
+          itemBuilder: (context, index) {
+            final currentMenu = data[index];
+            final imageUrl = '$URLPATH/assets/${currentMenu.menuImageUrl}';
 
-              if (snapshot.hasError) {
-                return Center(child: Text('Error: ${snapshot.error}'));
-              }
-
-              if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                return const Center(child: Text('No menu items available'));
-              }
-
-              final data = snapshot.data!;
-
-              return GridView.builder(
-                padding: const EdgeInsets.all(16.0),
-                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 2,
-                  crossAxisSpacing: 16.0,
-                  mainAxisSpacing: 16.0,
-                  childAspectRatio: 0.75,
+            return InkWell(
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => DetailScreen(menu: currentMenu),
+                  ),
+                );
+              },
+              child: Card(
+                clipBehavior: Clip.antiAlias,
+                elevation: 5,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16.0),
                 ),
-                itemCount: data.length,
-                itemBuilder: (context, index) {
-                  final currentMenu = data[index];
-                  final imageUrl =
-                      '$URLPATH/assets/${currentMenu.menuImageUrl}';
-
-                  return InkWell(
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => DetailScreen(menu: currentMenu),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Expanded(
+                      child: ClipRRect(
+                        borderRadius: const BorderRadius.vertical(
+                          top: Radius.circular(16.0),
                         ),
-                      );
-                    },
-                    child: Card(
-                      clipBehavior: Clip.antiAlias,
-                      elevation: 3,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(16.0),
+                        child: Image.network(
+                          imageUrl,
+                          fit: BoxFit.cover,
+                          errorBuilder: (context, error, stackTrace) =>
+                              const Center(
+                                child: Icon(Icons.broken_image, size: 40),
+                              ),
+                        ),
                       ),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(12, 12, 12, 8),
                       child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Expanded(
-                            child: ClipRRect(
-                              borderRadius: const BorderRadius.vertical(
-                                top: Radius.circular(16.0),
-                              ),
-                              child: Image.network(
-                                imageUrl,
-                                fit: BoxFit.cover,
-                                errorBuilder: (context, error, stackTrace) =>
-                                    const Center(
-                                      child: Icon(Icons.broken_image, size: 40),
-                                    ),
-                              ),
+                          Text(
+                            currentMenu.menuName,
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 16,
+                              color: Theme.of(context).colorScheme.onSurface,
+                            ),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            '\$${currentMenu.menuPrice.toStringAsFixed(2)}',
+                            style: TextStyle(
+                              color: Theme.of(context).colorScheme.secondary,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 14,
                             ),
                           ),
-                          Padding(
-                            padding: const EdgeInsets.fromLTRB(10, 10, 10, 6),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
+                          if (isAdmin)
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.end,
                               children: [
-                                Text(
-                                  currentMenu.menuName,
-                                  style: const TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 14,
+                                IconButton(
+                                  icon: Icon(
+                                    Icons.edit,
+                                    color: Theme.of(
+                                      context,
+                                    ).colorScheme.primary,
                                   ),
-                                  overflow: TextOverflow.ellipsis,
+                                  iconSize: 20,
+                                  onPressed: () => _handleEdit(currentMenu),
                                 ),
-                                const SizedBox(height: 4),
-                                Text(
-                                  '\$${currentMenu.menuPrice.toStringAsFixed(2)}',
-                                  style: const TextStyle(
-                                    color: Colors.green,
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 13,
+                                IconButton(
+                                  icon: Icon(
+                                    Icons.delete,
+                                    color: Theme.of(context).colorScheme.error,
                                   ),
+                                  iconSize: 20,
+                                  onPressed: () =>
+                                      _handleDelete(currentMenu.menuId),
                                 ),
-                                if (isAdmin) ...[
-                                  const SizedBox(height: 1),
-                                  Row(
-                                    mainAxisAlignment: MainAxisAlignment.end,
-                                    children: [
-                                      IconButton(
-                                        icon: const Icon(
-                                          Icons.edit,
-                                          color: Colors.blue,
-                                        ),
-                                        iconSize: 18,
-                                        padding: EdgeInsets.zero,
-                                        constraints: const BoxConstraints(),
-                                        onPressed: () =>
-                                            _handleEdit(currentMenu),
-                                      ),
-                                      const SizedBox(width: 8),
-                                      IconButton(
-                                        icon: const Icon(
-                                          Icons.delete,
-                                          color: Colors.red,
-                                        ),
-                                        iconSize: 18,
-                                        padding: EdgeInsets.zero,
-                                        constraints: const BoxConstraints(),
-                                        onPressed: () =>
-                                            _handleDelete(currentMenu.menuId),
-                                      ),
-                                    ],
-                                  ),
-                                ],
                               ],
                             ),
-                          ),
                         ],
                       ),
                     ),
-                  );
-                },
-              );
-            },
-          ),
-        ),
-      ],
+                  ],
+                ),
+              ),
+            );
+          },
+        );
+      },
     );
   }
 }

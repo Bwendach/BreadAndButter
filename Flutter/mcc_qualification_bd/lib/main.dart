@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:bread_and_butter/screens/login_screen.dart';
+import 'package:bread_and_butter/utils/colors.dart'; 
 
 void main() {
   runApp(const MyApp());
@@ -12,9 +13,9 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Flutter Demo',
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Color(0xFFB47B84)),
-      ),
+      theme: lightTheme, 
+      darkTheme: darkTheme,
+      themeMode: ThemeMode.system, 
       home: const LoginScreen(),
     );
   }

@@ -35,6 +35,7 @@ const Color warmOrange = Color(0xFFE17B47);
 const Color softYellow = Color(0xFFF5D982);
 const Color mutedGreen = Color(0xFF7D8471);
 const Color lavenderBlush = Color(0xFFE8D5DA);
+const Color starColor = Color(0xFFFFD700); 
 
 // Light Theme
 final ThemeData lightTheme = ThemeData(

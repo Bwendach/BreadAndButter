@@ -1,5 +1,6 @@
 import 'package:bread_and_butter/apis/api.dart';
 import 'package:bread_and_butter/models/review_model.dart';
+import 'package:bread_and_butter/utils/colors.dart';
 import 'package:bread_and_butter/utils/snack_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:bread_and_butter/models/menu_model.dart';
@@ -47,7 +48,6 @@ class _DetailScreenState extends State<DetailScreen> {
   Future<void> _loadUserId() async {
     final prefs = await SharedPreferences.getInstance();
     _userId = prefs.getString('userId');
-    print('Loaded userId: $_userId'); // Debug print
   }
 
   Future<List<ReviewModel>> _fetchReviews() async {
@@ -57,25 +57,13 @@ class _DetailScreenState extends State<DetailScreen> {
           .map((json) => ReviewModel.fromJson(json))
           .toList();
 
-      print('Fetched ${reviews.length} reviews'); // Debug print
-      print('Current userId: $_userId'); // Debug print
-
-      // Check if current user has a review
       if (_userId != null) {
         try {
           _userReview = reviews.firstWhere((review) {
-            print(
-              'Comparing ${review.userId.toString()} with $_userId',
-            ); // Debug print
             return review.userId.toString() == _userId;
           });
-
-          print('Found user review: ${_userReview?.reviewId}'); // Debug print
-
-          // Remove user review from the list to add it at the top later
           reviews.removeWhere((review) => review.userId.toString() == _userId);
         } catch (e) {
-          print('No user review found: $e'); // Debug print
           _userReview = null;
         }
       }
@@ -86,7 +74,6 @@ class _DetailScreenState extends State<DetailScreen> {
 
       return reviews;
     } catch (e) {
-      print('Error fetching reviews: $e'); // Debug print
       setState(() {
         _isLoading = false;
       });
@@ -203,7 +190,13 @@ class _DetailScreenState extends State<DetailScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text('Rating:', style: TextStyle(fontWeight: FontWeight.bold)),
+        Text(
+          'Your Rating:',
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            color: Theme.of(context).colorScheme.onSurface,
+          ),
+        ),
         const SizedBox(height: 8),
         Row(
           children: List.generate(5, (index) {
@@ -216,16 +209,14 @@ class _DetailScreenState extends State<DetailScreen> {
               },
               child: Icon(
                 Icons.star,
-                size: 30,
+                size: 32,
                 color: rating <= _selectedRating
-                    ? Colors.amber
-                    : Colors.grey[300],
+                    ? softYellow
+                    : Theme.of(context).dividerColor,
               ),
             );
           }),
         ),
-        const SizedBox(height: 8),
-        Text('${_selectedRating.toInt()}/5 stars'),
       ],
     );
   }
@@ -234,26 +225,37 @@ class _DetailScreenState extends State<DetailScreen> {
     if (_userReview == null) return const SizedBox.shrink();
 
     return Card(
-      margin: const EdgeInsets.only(bottom: 16),
-      color: Colors.blue[50],
+      elevation: 3,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      color: Theme.of(context).cardColor,
       child: Padding(
-        padding: const EdgeInsets.all(12),
+        padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
               children: [
-                const Text(
+                Text(
                   'Your Review',
-                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 18,
+                    color: Theme.of(context).colorScheme.primary,
+                  ),
                 ),
                 const Spacer(),
                 IconButton(
-                  icon: const Icon(Icons.edit, color: Colors.blue),
+                  icon: Icon(
+                    Icons.edit,
+                    color: Theme.of(context).colorScheme.secondary,
+                  ),
                   onPressed: _startEditingReview,
                 ),
                 IconButton(
-                  icon: const Icon(Icons.delete, color: Colors.red),
+                  icon: Icon(
+                    Icons.delete,
+                    color: Theme.of(context).colorScheme.error,
+                  ),
                   onPressed: _deleteReview,
                 ),
               ],
@@ -263,17 +265,132 @@ class _DetailScreenState extends State<DetailScreen> {
               children: List.generate(5, (index) {
                 return Icon(
                   Icons.star,
-                  size: 20,
+                  size: 24,
                   color: index < _userReview!.reviewRating
-                      ? Colors.amber
-                      : Colors.grey[300],
+                      ? softYellow
+                      : Theme.of(context).dividerColor,
                 );
               }),
             ),
-            const SizedBox(height: 8),
-            Text(_userReview!.reviewContent),
+            const SizedBox(height: 12),
+            Text(
+              _userReview!.reviewContent,
+              style: TextStyle(
+                fontSize: 16,
+                color: Theme.of(context).colorScheme.onSurface,
+              ),
+            ),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildReviewInputSection() {
+    if (_isLoading) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
+    if (_userReview == null) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _buildReviewHeader('Leave a Review'),
+          const SizedBox(height: 16),
+          _buildRatingPicker(),
+          const SizedBox(height: 16),
+          TextField(
+            controller: _reviewController,
+            focusNode: _reviewFocusNode,
+            decoration: InputDecoration(
+              hintText: 'Enter your review here...',
+              border: const OutlineInputBorder(
+                borderRadius: BorderRadius.all(Radius.circular(12)),
+              ),
+              filled: true,
+              fillColor: Theme.of(context).colorScheme.surface,
+            ),
+            maxLines: 3,
+          ),
+          const SizedBox(height: 12),
+          Align(
+            alignment: Alignment.centerRight,
+            child: ElevatedButton.icon(
+              onPressed: _createReview,
+              icon: const Icon(Icons.send),
+              label: const Text('Submit Review'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Theme.of(context).colorScheme.primary,
+                foregroundColor: Theme.of(context).colorScheme.onPrimary,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+              ),
+            ),
+          ),
+        ],
+      );
+    } else if (_isEditingReview) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _buildReviewHeader('Edit Your Review'),
+          const SizedBox(height: 16),
+          _buildRatingPicker(),
+          const SizedBox(height: 16),
+          TextField(
+            controller: _reviewController,
+            focusNode: _reviewFocusNode,
+            decoration: InputDecoration(
+              hintText: 'Enter your review here...',
+              border: const OutlineInputBorder(
+                borderRadius: BorderRadius.all(Radius.circular(12)),
+              ),
+              filled: true,
+              fillColor: Theme.of(context).colorScheme.surface,
+            ),
+            maxLines: 3,
+          ),
+          const SizedBox(height: 12),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: [
+              TextButton(
+                onPressed: _cancelEditingReview,
+                child: Text(
+                  'Cancel',
+                  style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
+                ),
+              ),
+              const SizedBox(width: 8),
+              ElevatedButton(
+                onPressed: _updateReview,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Theme.of(context).colorScheme.secondary,
+                  foregroundColor: Theme.of(context).colorScheme.onSecondary,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+                child: const Text('Update Review'),
+              ),
+            ],
+          ),
+        ],
+      );
+    } else {
+      return _buildUserReviewCard();
+    }
+  }
+
+  Widget _buildReviewHeader(String title) {
+    return Text(
+      title,
+      style: TextStyle(
+        fontSize: 20,
+        fontWeight: FontWeight.bold,
+        color: Theme.of(context).colorScheme.primary,
       ),
     );
   }
@@ -287,8 +404,14 @@ class _DetailScreenState extends State<DetailScreen> {
       child: Scaffold(
         appBar: AppBar(
           title: Text(widget.menu.menuName),
-          bottom: const TabBar(
-            tabs: [
+          backgroundColor: Theme.of(context).colorScheme.primary,
+          foregroundColor: Theme.of(context).colorScheme.onPrimary,
+          bottom: TabBar(
+            labelColor: Theme.of(context).colorScheme.onPrimary,
+            unselectedLabelColor: Theme.of(context).colorScheme.onPrimary.withOpacity(0.7),
+            indicatorColor: Theme.of(context).colorScheme.onPrimary,
+            indicatorWeight: 3,
+            tabs: const [
               Tab(icon: Icon(Icons.info), text: 'Details'),
               Tab(icon: Icon(Icons.reviews), text: 'Reviews'),
             ],
@@ -298,111 +421,58 @@ class _DetailScreenState extends State<DetailScreen> {
           children: [
             // --- Details Tab ---
             SingleChildScrollView(
-              padding: const EdgeInsets.all(16.0),
+              padding: const EdgeInsets.all(24.0),
               child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  Center(
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(20),
                     child: Image.network(
                       imageUrl,
-                      height: 200,
+                      height: 250,
                       fit: BoxFit.cover,
                       errorBuilder: (context, error, _) {
-                        return const Icon(Icons.broken_image, size: 100);
+                        return Container(
+                          height: 250,
+                          color: Theme.of(context).colorScheme.surface,
+                          child: const Center(
+                            child: Icon(Icons.broken_image, size: 100, color: Colors.grey),
+                          ),
+                        );
                       },
                     ),
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 24),
                   Text(
                     widget.menu.menuName,
-                    style: const TextStyle(
-                      fontSize: 22,
+                    style: TextStyle(
+                      fontSize: 28,
                       fontWeight: FontWeight.bold,
+                      color: Theme.of(context).colorScheme.primary,
                     ),
                   ),
                   const SizedBox(height: 8),
                   Text(
                     '\$${widget.menu.menuPrice.toStringAsFixed(2)}',
-                    style: const TextStyle(fontSize: 18, color: Colors.green),
+                    style: TextStyle(
+                      fontSize: 22,
+                      fontWeight: FontWeight.bold,
+                      color: Theme.of(context).colorScheme.secondary,
+                    ),
                   ),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: 16),
                   Text(
                     widget.menu.menuDescription,
-                    style: const TextStyle(fontSize: 16),
+                    style: TextStyle(
+                      fontSize: 16,
+                      height: 1.5,
+                      color: Theme.of(context).colorScheme.onSurface,
+                    ),
                   ),
                   const SizedBox(height: 32),
-                  const Divider(),
-
-                  // Show loading indicator while checking for user review
-                  if (_isLoading) ...[
-                    const Center(child: CircularProgressIndicator()),
-                  ] else if (_userReview == null) ...[
-                    const Text(
-                      'Leave a Review',
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    _buildRatingPicker(),
-                    const SizedBox(height: 16),
-                    TextField(
-                      controller: _reviewController,
-                      focusNode: _reviewFocusNode,
-                      decoration: const InputDecoration(
-                        hintText: 'Enter your review here...',
-                        border: OutlineInputBorder(),
-                      ),
-                      maxLines: 3,
-                    ),
-                    const SizedBox(height: 8),
-                    Align(
-                      alignment: Alignment.centerRight,
-                      child: ElevatedButton(
-                        onPressed: _createReview,
-                        child: const Text('Submit Review'),
-                      ),
-                    ),
-                  ] else if (_isEditingReview) ...[
-                    const Text(
-                      'Edit Your Review',
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    _buildRatingPicker(),
-                    const SizedBox(height: 16),
-                    TextField(
-                      controller: _reviewController,
-                      focusNode: _reviewFocusNode,
-                      decoration: const InputDecoration(
-                        hintText: 'Enter your review here...',
-                        border: OutlineInputBorder(),
-                      ),
-                      maxLines: 3,
-                    ),
-                    const SizedBox(height: 8),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.end,
-                      children: [
-                        TextButton(
-                          onPressed: _cancelEditingReview,
-                          child: const Text('Cancel'),
-                        ),
-                        const SizedBox(width: 8),
-                        ElevatedButton(
-                          onPressed: _updateReview,
-                          child: const Text('Update Review'),
-                        ),
-                      ],
-                    ),
-                  ] else ...[
-                    // Show user's existing review
-                    _buildUserReviewCard(),
-                  ],
+                  const Divider(height: 1, thickness: 1),
+                  const SizedBox(height: 24),
+                  _buildReviewInputSection(),
                 ],
               ),
             ),
@@ -411,69 +481,67 @@ class _DetailScreenState extends State<DetailScreen> {
             FutureBuilder<List<ReviewModel>>(
               future: _reviewsFuture,
               builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting ||
-                    _isLoading) {
+                if (snapshot.connectionState == ConnectionState.waiting || _isLoading) {
                   return const Center(child: CircularProgressIndicator());
                 } else if (snapshot.hasError) {
                   return Center(child: Text('Error: ${snapshot.error}'));
-                } else if (!snapshot.hasData ||
-                    (snapshot.data!.isEmpty && _userReview == null)) {
+                } else if (!snapshot.hasData || (snapshot.data!.isEmpty && _userReview == null)) {
                   return const Center(
                     child: Text('No reviews yet. Be the first!'),
                   );
                 } else {
                   final reviews = snapshot.data!;
                   return ListView(
-                    padding: const EdgeInsets.all(16),
+                    padding: const EdgeInsets.all(20),
                     children: [
-                      // User's review at the top
                       _buildUserReviewCard(),
-
-                      // Other reviews
-                      ...reviews
-                          .map(
-                            (review) => FutureBuilder<String>(
-                              future: getUsername(review.userId.toString()),
-                              builder: (context, userSnapshot) {
-                                final username = userSnapshot.hasData
-                                    ? userSnapshot.data!
-                                    : 'Loading...';
-                                return Card(
-                                  margin: const EdgeInsets.only(bottom: 8),
-                                  child: Padding(
-                                    padding: const EdgeInsets.all(12),
-                                    child: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                          username,
-                                          style: const TextStyle(
-                                            fontWeight: FontWeight.bold,
-                                          ),
+                      ...reviews.map((review) => FutureBuilder<String>(
+                            future: getUsername(review.userId.toString()),
+                            builder: (context, userSnapshot) {
+                              final username = userSnapshot.hasData ? userSnapshot.data! : 'Loading...';
+                              return Card(
+                                elevation: 1,
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                                margin: const EdgeInsets.only(bottom: 12),
+                                child: Padding(
+                                  padding: const EdgeInsets.all(16),
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        username,
+                                        style: TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 16,
+                                          color: Theme.of(context).colorScheme.onSurface,
                                         ),
-                                        const SizedBox(height: 4),
-                                        Row(
-                                          children: List.generate(5, (index) {
-                                            return Icon(
-                                              Icons.star,
-                                              size: 16,
-                                              color: index < review.reviewRating
-                                                  ? Colors.amber
-                                                  : Colors.grey[300],
-                                            );
-                                          }),
+                                      ),
+                                      const SizedBox(height: 4),
+                                      Row(
+                                        children: List.generate(5, (index) {
+                                          return Icon(
+                                            Icons.star,
+                                            size: 18,
+                                            color: index < review.reviewRating
+                                                ? softYellow
+                                                : Theme.of(context).dividerColor,
+                                          );
+                                        }),
+                                      ),
+                                      const SizedBox(height: 8),
+                                      Text(
+                                        review.reviewContent,
+                                        style: TextStyle(
+                                          fontSize: 14,
+                                          color: Theme.of(context).colorScheme.onSurface.withOpacity(0.8),
                                         ),
-                                        const SizedBox(height: 8),
-                                        Text(review.reviewContent),
-                                      ],
-                                    ),
+                                      ),
+                                    ],
                                   ),
-                                );
-                              },
-                            ),
-                          )
-                          .toList(),
+                                ),
+                              );
+                            },
+                          )),
                     ],
                   );
                 }
