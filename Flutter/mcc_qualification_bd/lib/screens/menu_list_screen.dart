@@ -52,7 +52,9 @@ class _MenuListScreenState extends State<MenuListScreen> {
     final TextEditingController priceController = TextEditingController(
       text: menu.menuPrice.toString(),
     );
-    File? selectedImage;
+
+    File? newImageFile;
+    String originalImageUrl = menu.menuImageUrl;
     final picker = ImagePicker();
 
     showDialog(
@@ -66,7 +68,7 @@ class _MenuListScreenState extends State<MenuListScreen> {
               );
               if (pickedFile != null) {
                 setStateInDialog(() {
-                  selectedImage = File(pickedFile.path);
+                  newImageFile = File(pickedFile.path);
                 });
               }
             }
@@ -78,7 +80,7 @@ class _MenuListScreenState extends State<MenuListScreen> {
                   menuName: nameController.text,
                   menuDescription: descriptionController.text,
                   menuPrice: double.parse(priceController.text),
-                  menuImage: selectedImage,
+                  menuImage: newImageFile,
                 );
                 showSnackBar(context, 'Menu item updated successfully!');
                 _refreshMenuList();
@@ -152,17 +154,13 @@ class _MenuListScreenState extends State<MenuListScreen> {
                           width: 1,
                         ),
                       ),
-                      child: selectedImage != null
-                          ? ClipRRect(
-                              borderRadius: BorderRadius.circular(16),
-                              child: Image.file(
-                                selectedImage!,
-                                fit: BoxFit.cover,
-                              ),
-                            )
-                          : ClipRRect(
-                              borderRadius: BorderRadius.circular(16),
-                              child: Image.network(
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(16),
+                        child: newImageFile != null
+                            // If a new file is picked, show the local file
+                            ? Image.file(newImageFile!, fit: BoxFit.cover)
+                            // Otherwise, show the original network image
+                            : Image.network(
                                 '$URLPATH/assets/${menu.menuImageUrl}',
                                 fit: BoxFit.cover,
                                 errorBuilder: (context, error, stackTrace) =>
@@ -170,13 +168,13 @@ class _MenuListScreenState extends State<MenuListScreen> {
                                       child: Icon(Icons.broken_image, size: 40),
                                     ),
                               ),
-                            ),
+                      ),
                     ),
                     const SizedBox(height: 16),
                     ElevatedButton.icon(
                       onPressed: _pickImage,
                       icon: Icon(
-                        selectedImage == null ? Icons.edit : Icons.image,
+                        newImageFile == null ? Icons.edit : Icons.image,
                         color: Theme.of(context).colorScheme.onPrimary,
                       ),
                       label: Text(

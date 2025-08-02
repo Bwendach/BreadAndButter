@@ -45,20 +45,31 @@ exports.create = (req, res) => {
 exports.update = (req, res) => {
   const { menuId } = req.params;
   const { menuName, menuDescription, menuPrice } = req.body;
+
   const menuImageUrl = req.file ? req.file.filename : null;
 
-  if (!req.user || req.user.role !== "admin")
+  if (!req.user || req.user.role !== "admin") {
     return res.status(403).json({ error: "Forbidden" });
+  }
 
-  db.query(
-    "UPDATE menu SET menuName = ?, menuDescription = ?, menuImageUrl = ?, menuPrice = ? WHERE menuId = ?",
-    [menuName, menuDescription, menuImageUrl, menuPrice, menuId],
-    (err) => {
-      if (err) return handleError(res, err);
-      res.json({ message: "Menu updated successfully" });
+  let sql = "UPDATE menu SET menuName = ?, menuDescription = ?, menuPrice = ?";
+  const params = [menuName, menuDescription, menuPrice];
+
+  if (menuImageUrl) {
+    sql += ", menuImageUrl = ?";
+    params.push(menuImageUrl);
+  }
+
+  sql += " WHERE menuId = ?";
+  params.push(menuId);
+
+  db.query(sql, params, (err) => {
+    if (err) {
+      return handleError(res, err);
     }
-  );
-}
+    res.json({ message: "Menu updated successfully" });
+  });
+};
 
 // Delete menu (admin only)
 exports.delete = (req, res) => {

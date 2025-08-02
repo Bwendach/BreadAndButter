@@ -23,7 +23,7 @@ CREATE TABLE IF NOT EXISTS menu_reviews (
     menuId INT NOT NULL,
     userId INT NOT NULL,
     reviewContent TEXT,
-    reviewRating INT CHECK (reviewRating >= 1 AND reviewRating <= 10),
+    reviewRating INT CHECK (reviewRating >= 1 AND reviewRating <= 5),
     FOREIGN KEY (menuId) REFERENCES menu(menuId) ON DELETE CASCADE,
     FOREIGN KEY (userId) REFERENCES users(userId) ON DELETE CASCADE
 );

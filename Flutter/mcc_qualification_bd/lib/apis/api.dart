@@ -135,6 +135,8 @@ Future<void> updateMenuItem({
   request.fields['menuDescription'] = menuDescription;
   request.fields['menuPrice'] = menuPrice.toString();
 
+  request.fields['shouldUpdateImage'] = (menuImage != null).toString();
+
   if (menuImage != null) {
     String? mimeType = lookupMimeType(
       menuImage.path,

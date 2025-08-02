@@ -220,25 +220,19 @@ class _MainScreenState extends State<MainScreen> {
       onWillPop: () async => false,
       child: Scaffold(
         appBar: AppBar(
+          iconTheme: IconThemeData(
+            color: Theme.of(context).colorScheme.primary,
+          ),
           title: Row(
             children: [
-              Container(
-                padding: const EdgeInsets.all(6),
-                decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Icon(
-                  Icons.waving_hand,
-                  color: Theme.of(context).colorScheme.primary,
-                  size: 20,
-                ),
-              ),
               const SizedBox(width: 8),
               Expanded(
                 child: Text(
                   'Hi, $username!',
-                  style: const TextStyle(fontWeight: FontWeight.w600),
+                  style: TextStyle(
+                    fontWeight: FontWeight.w600,
+                    color: Theme.of(context).colorScheme.primary,
+                  ),
                   overflow: TextOverflow.ellipsis,
                 ),
               ),
@@ -298,7 +292,7 @@ class _MainScreenState extends State<MainScreen> {
       case ThemeModeOption.dark:
         return Icons.nights_stay;
       case ThemeModeOption.system:
-        return Icons.brightness_auto;
+        return Icons.settings_display_outlined;
     }
   }
 
