@@ -5,7 +5,9 @@ import 'package:flutter/material.dart';
 import 'package:bread_and_butter/screens/menu_list_screen.dart';
 import 'package:bread_and_butter/screens/home_screen.dart';
 import 'package:bread_and_butter/screens/login_screen.dart';
+import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:bread_and_butter/utils/theme_provider.dart';
 
 enum ThemeMode { light, dark, system }
 
@@ -23,29 +25,11 @@ class _MainScreenState extends State<MainScreen> {
   String username = "";
   String role = "";
   String userId = "";
-  ThemeMode _themeMode = ThemeMode.system;
 
   @override
   void initState() {
     super.initState();
     _fetchUserDetails();
-    _loadThemePreference();
-  }
-
-  void _loadThemePreference() async {
-    final prefs = await SharedPreferences.getInstance();
-    final themeModeString = prefs.getString('theme_mode') ?? 'system';
-    setState(() {
-      _themeMode = ThemeMode.values.firstWhere(
-        (mode) => mode.toString().split('.').last == themeModeString,
-        orElse: () => ThemeMode.system,
-      );
-    });
-  }
-
-  void _saveThemePreference(ThemeMode mode) async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString('theme_mode', mode.toString().split('.').last);
   }
 
   void _showThemeSelector() {
@@ -65,24 +49,21 @@ class _MainScreenState extends State<MainScreen> {
             children: [
               _buildThemeOption(
                 context,
-                ThemeMode.light,
+                ThemeModeOption.light,
                 'Light',
                 Icons.wb_sunny,
-                'Bright and clean',
               ),
               _buildThemeOption(
                 context,
-                ThemeMode.dark,
+                ThemeModeOption.dark,
                 'Dark',
                 Icons.nights_stay,
-                'Easy on the eyes',
               ),
               _buildThemeOption(
                 context,
-                ThemeMode.system,
+                ThemeModeOption.system,
                 'System',
                 Icons.settings,
-                'Follow device settings',
               ),
             ],
           ),
@@ -93,12 +74,13 @@ class _MainScreenState extends State<MainScreen> {
 
   Widget _buildThemeOption(
     BuildContext context,
-    ThemeMode mode,
+    ThemeModeOption mode,
     String title,
     IconData icon,
-    String subtitle,
   ) {
-    final isSelected = _themeMode == mode;
+    final themeProvider = Provider.of<ThemeProvider>(context);
+    final isSelected = themeProvider.themeMode == mode;
+
     return Container(
       margin: const EdgeInsets.only(bottom: 8),
       child: ListTile(
@@ -125,7 +107,6 @@ class _MainScreenState extends State<MainScreen> {
             color: isSelected ? Theme.of(context).colorScheme.primary : null,
           ),
         ),
-        subtitle: Text(subtitle),
         trailing: isSelected
             ? Icon(
                 Icons.check_circle,
@@ -133,10 +114,7 @@ class _MainScreenState extends State<MainScreen> {
               )
             : null,
         onTap: () {
-          setState(() {
-            _themeMode = mode;
-          });
-          _saveThemePreference(mode);
+          themeProvider.setThemeMode(mode);
           Navigator.of(context).pop();
           showSnackBar(context, 'Theme updated to ${title.toLowerCase()}');
         },
@@ -205,6 +183,8 @@ class _MainScreenState extends State<MainScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final themeProvider = Provider.of<ThemeProvider>(context);
+
     final List<Widget> pages = [
       const HomeScreen(),
       MenuListScreen(userId: userId, role: role),
@@ -267,7 +247,7 @@ class _MainScreenState extends State<MainScreen> {
           actions: [
             IconButton(
               icon: Icon(
-                _getThemeIcon(),
+                _getThemeIcon(themeProvider.themeMode),
                 color: Theme.of(context).colorScheme.primary,
               ),
               tooltip: 'Change Theme',
@@ -279,7 +259,7 @@ class _MainScreenState extends State<MainScreen> {
           backgroundColor: Theme.of(context).scaffoldBackgroundColor,
           surfaceTintColor: Colors.transparent,
         ),
-        drawer: _buildDrawer(context),
+        drawer: _buildDrawer(context, themeProvider),
         body: IndexedStack(index: _currentIndex, children: pages),
         bottomNavigationBar: Container(
           decoration: BoxDecoration(
@@ -311,18 +291,18 @@ class _MainScreenState extends State<MainScreen> {
     );
   }
 
-  IconData _getThemeIcon() {
-    switch (_themeMode) {
-      case ThemeMode.light:
+  IconData _getThemeIcon(ThemeModeOption mode) {
+    switch (mode) {
+      case ThemeModeOption.light:
         return Icons.wb_sunny;
-      case ThemeMode.dark:
+      case ThemeModeOption.dark:
         return Icons.nights_stay;
-      case ThemeMode.system:
+      case ThemeModeOption.system:
         return Icons.brightness_auto;
     }
   }
 
-  Widget _buildDrawer(BuildContext context) {
+  Widget _buildDrawer(BuildContext context, ThemeProvider themeProvider) {
     return Drawer(
       child: Column(
         children: [
@@ -408,7 +388,7 @@ class _MainScreenState extends State<MainScreen> {
                 const Divider(height: 32),
                 ListTile(
                   leading: Icon(
-                    _getThemeIcon(),
+                    _getThemeIcon(themeProvider.themeMode),
                     color: Theme.of(context).colorScheme.primary,
                   ),
                   title: const Text('Theme Settings'),

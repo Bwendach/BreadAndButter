@@ -1,9 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:bread_and_butter/screens/login_screen.dart';
-import 'package:bread_and_butter/utils/colors.dart'; 
+import 'package:bread_and_butter/utils/colors.dart';
+import 'package:bread_and_butter/utils/theme_provider.dart';
 
 void main() {
-  runApp(const MyApp());
+  runApp(
+    ChangeNotifierProvider(
+      create: (context) => ThemeProvider(),
+      child: const MyApp(), 
+    ),
+  );
 }
 
 class MyApp extends StatelessWidget {
@@ -11,11 +18,13 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final themeProvider = Provider.of<ThemeProvider>(context);
+
     return MaterialApp(
       title: 'Flutter Demo',
-      theme: lightTheme, 
+      theme: lightTheme,
       darkTheme: darkTheme,
-      themeMode: ThemeMode.system, 
+      themeMode: themeProvider.flutterThemeMode,
       home: const LoginScreen(),
     );
   }
