@@ -54,7 +54,6 @@ class _MenuListScreenState extends State<MenuListScreen> {
     );
 
     File? newImageFile;
-    String originalImageUrl = menu.menuImageUrl;
     final picker = ImagePicker();
 
     showDialog(
