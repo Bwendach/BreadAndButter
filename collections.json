@@ -1,0 +1,321 @@
+{
+  "info": {
+    "_postman_id": "97e682d3-13b9-4b6d-a7c8-89c09c12b7a9",
+    "name": "Bread and Butter API",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "description": "API collection for the Bread and Butter application, generated from Dart code."
+  },
+  "variables": [
+    {
+      "key": "URLPATH",
+      "value": "http://127.0.0.1:3000",
+      "type": "string"
+    },
+    {
+      "key": "userId",
+      "value": "1",
+      "type": "string"
+    },
+    {
+      "key": "menuId",
+      "value": "1",
+      "type": "string"
+    },
+    {
+      "key": "reviewId",
+      "value": "1",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "User APIs",
+      "item": [
+        {
+          "name": "Login",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"login\": \"testuser\",\n  \"password\": \"password123\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{URLPATH}}/api/users/login",
+              "host": ["{{URLPATH}}"],
+              "path": ["api", "users", "login"]
+            },
+            "description": "Logs in a user with a username or email and password. Returns a token and userId on success."
+          },
+          "response": []
+        },
+        {
+          "name": "Get User Details",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{URLPATH}}/api/users/{{userId}}",
+              "host": ["{{URLPATH}}"],
+              "path": ["api", "users", "{{userId}}"]
+            },
+            "description": "Fetches details for a specific user by their ID."
+          },
+          "response": []
+        },
+        {
+          "name": "Get Username",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{URLPATH}}/api/users/username/{{userId}}",
+              "host": ["{{URLPATH}}"],
+              "path": ["api", "users", "username", "{{userId}}"]
+            },
+            "description": "Fetches only the username for a specific user by their ID."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Menu APIs",
+      "item": [
+        {
+          "name": "Get Menu List",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{URLPATH}}/api/menu",
+              "host": ["{{URLPATH}}"],
+              "path": ["api", "menu"]
+            },
+            "description": "Retrieves a list of all menu items."
+          },
+          "response": []
+        },
+        {
+          "name": "Create Menu Item",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "menuName",
+                  "value": "Example Menu Item",
+                  "type": "text"
+                },
+                {
+                  "key": "menuDescription",
+                  "value": "A detailed description of the menu item.",
+                  "type": "text"
+                },
+                {
+                  "key": "menuPrice",
+                  "value": "12.99",
+                  "type": "text"
+                },
+                {
+                  "key": "menuImage",
+                  "type": "file",
+                  "src": "avocado_toast.jpg"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{URLPATH}}/api/menu/create",
+              "host": ["{{URLPATH}}"],
+              "path": ["api", "menu", "create"]
+            },
+            "description": "Creates a new menu item. The 'menuImage' field requires a file."
+          },
+          "response": []
+        },
+        {
+          "name": "Update Menu Item",
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "menuName",
+                  "value": "Updated Menu Item Name",
+                  "type": "text"
+                },
+                {
+                  "key": "menuDescription",
+                  "value": "An updated description.",
+                  "type": "text"
+                },
+                {
+                  "key": "menuPrice",
+                  "value": "15.50",
+                  "type": "text"
+                },
+                {
+                  "key": "shouldUpdateImage",
+                  "value": "false",
+                  "type": "text",
+                  "description": "Set to 'true' if a new image file is provided."
+                },
+                {
+                  "key": "menuImage",
+                  "type": "file",
+                  "src": "path/to/your/new_image.png",
+                  "disabled": true
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{URLPATH}}/api/menu/update/{{menuId}}",
+              "host": ["{{URLPATH}}"],
+              "path": ["api", "menu", "update", "{{menuId}}"]
+            },
+            "description": "Updates an existing menu item by ID. Send an optional 'menuImage' file to update the image."
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Menu Item",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{URLPATH}}/api/menu/delete/{{menuId}}",
+              "host": ["{{URLPATH}}"],
+              "path": ["api", "menu", "delete", "{{menuId}}"]
+            },
+            "description": "Deletes a menu item by its ID."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Review APIs",
+      "item": [
+        {
+          "name": "Get Reviews for a Menu Item",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{URLPATH}}/api/reviews/menu/{{menuId}}",
+              "host": ["{{URLPATH}}"],
+              "path": ["api", "reviews", "menu", "{{menuId}}"]
+            },
+            "description": "Fetches all reviews for a specific menu item."
+          },
+          "response": []
+        },
+        {
+          "name": "Get User Review for a Menu Item",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{URLPATH}}/api/reviews/menu/{{menuId}}/user/{{userId}}",
+              "host": ["{{URLPATH}}"],
+              "path": [
+                "api",
+                "reviews",
+                "menu",
+                "{{menuId}}",
+                "user",
+                "{{userId}}"
+              ]
+            },
+            "description": "Fetches a specific user's review for a menu item."
+          },
+          "response": []
+        },
+        {
+          "name": "Create Review",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"menuId\": {{menuId}},\n  \"userId\": {{userId}},\n  \"reviewContent\": \"This is a great dish!\",\n  \"reviewRating\": 5\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{URLPATH}}/api/reviews/create",
+              "host": ["{{URLPATH}}"],
+              "path": ["api", "reviews", "create"]
+            },
+            "description": "Creates a new review for a menu item."
+          },
+          "response": []
+        },
+        {
+          "name": "Update Review",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reviewContent\": \"This is an updated review.\",\n  \"reviewRating\": 4\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{URLPATH}}/api/reviews/update/{{reviewId}}",
+              "host": ["{{URLPATH}}"],
+              "path": ["api", "reviews", "update", "{{reviewId}}"]
+            },
+            "description": "Updates a review by its ID."
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Review",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{URLPATH}}/api/reviews/delete/{{reviewId}}",
+              "host": ["{{URLPATH}}"],
+              "path": ["api", "reviews", "delete", "{{reviewId}}"]
+            },
+            "description": "Deletes a review by its ID."
+          },
+          "response": []
+        }
+      ]
+    }
+  ]
+}
