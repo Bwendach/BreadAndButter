@@ -106,7 +106,7 @@ class _LoginScreenState extends State<LoginScreen>
       _isLoading = false;
     });
 
-    if (success) {
+    if (success && userId != null) {
       showSnackBar(context, "Login successful!");
 
       Navigator.pushAndRemoveUntil(

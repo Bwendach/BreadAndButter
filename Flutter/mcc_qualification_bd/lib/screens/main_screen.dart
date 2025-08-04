@@ -177,7 +177,11 @@ class _MainScreenState extends State<MainScreen> {
         userId = userDetails['userId'] ??= widget.userId;
       });
     } catch (e) {
-      showSnackBar(context, "Failed to fetch user details: $e");
+      await Future.delayed(const Duration(seconds: 2));
+
+      if (username.isEmpty || role.isEmpty) {
+        showSnackBar(context, "Failed to fetch user details: $e");
+      }
     }
   }
 

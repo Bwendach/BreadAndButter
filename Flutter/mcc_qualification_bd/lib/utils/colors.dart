@@ -167,7 +167,6 @@ final ThemeData darkTheme = ThemeData(
   ),
 );
 
-// Legacy colors for backward compatibility
 const fontColor = lightOnSurface;
 const secondaryColor = lightSecondary;
 const accentColor = lightAccent;

@@ -7,8 +7,9 @@ import 'package:http/http.dart';
 import 'package:http/http.dart' as http;
 import 'package:http_parser/http_parser.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
-const String URLPATH = "http://10.0.2.2:3000";
+final String URLPATH = dotenv.env['URLPATH'] ?? 'http://10.0.2.2:3000';
 
 // user apis (login, get user detail, get username)
 Future<(bool, String, {String? userId})> login(

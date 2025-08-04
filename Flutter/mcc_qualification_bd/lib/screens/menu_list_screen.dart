@@ -156,9 +156,7 @@ class _MenuListScreenState extends State<MenuListScreen> {
                       child: ClipRRect(
                         borderRadius: BorderRadius.circular(16),
                         child: newImageFile != null
-                            // If a new file is picked, show the local file
                             ? Image.file(newImageFile!, fit: BoxFit.cover)
-                            // Otherwise, show the original network image
                             : Image.network(
                                 '$URLPATH/assets/${menu.menuImageUrl}',
                                 fit: BoxFit.cover,
